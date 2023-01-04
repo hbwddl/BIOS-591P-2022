@@ -1,0 +1,109 @@
+---
+title: "Chi-Squared Test in R"
+author: "Hannah Waddel"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Chi-Squared Test
+
+Recall from Bios 500 that a Chi-Squared test is used when we want to test the relationship between two categorical variables. In this case, we are going to be testing whether the proportion of patients who get the flu is different between those who got the vaccine and those who got a placebo.
+
+Our null and alternative hypotheses are as follows:
+
+$$H_0: p_1 = p_2$$
+$$H_A: p_1 \ne p_2$$
+
+Where:
+
+$p_1 = \text{proportion of vaccine recipients who get the flu}$
+
+$p_2 = \text{proportion of placebo recipients who get the flu}$
+
+## Chi-Squared test with Contingency Table
+
+There are two types of data that we can use for the Chi-Squared test in R. The first is contingency table data, where the data are in a 2x2 table (or any number of rows and columns), where each cell in the table contains a count of subjects. 
+
+This is our data for the example:
+
+```{r, echo=FALSE,message=FALSE}
+library(kableExtra)
+library(tidyverse)
+setwd("~/Work/BIOS 591P 2021/R Materials/1 Introduction/Chi-Square Test")
+fluvac.data <- read.csv("fluvaccine.csv")
+
+flu.kab <- kable(table(fluvac.data$Flu,fluvac.data$Vaccine))
+flu.kab %>% add_header_above(c("Outcome","Population"=2))
+```
+
+To create contingency table data, we create a matrix with the counts. We give the matrix a list of the counts, and set it to have 2 rows and 2 columns. We also tell R to fill in the matrix along the rows.
+
+```{r}
+fluvac.table <- matrix(c(49,75,31,25),nrow=2,ncol=2,byrow=T)
+print(fluvac.table)
+```
+
+Now, we conduct the chi-square test with the __chisq.test()__ function.
+
+```{r}
+chisq.test(fluvac.table)
+```
+
+The output of __chisq.test()__ is actually a data frame which contains more information about the test. Let's save the output as an object in order to see what the expected counts were, which will allow us to check the chi-squared assumptions.
+
+```{r}
+fluchi.table <- chisq.test(fluvac.table)
+```
+
+We can use the __str()__ function, short for "structure", to see what information the chi-squared test object contains.
+
+```{r}
+str(fluchi.table)
+```
+
+The test has a lot of information, but we are interested in the "$ expected" part. This tells us that there is a part of the test data frame which we can access with the \$ operator.
+
+```{r}
+fluchi.table$expected
+```
+
+We can see that the expected values were greater than 5 in each of the cells, so it was appropriate to use the chi-squared test rather than Fisher's exact test.
+
+We now make our conclusion as follows: "Fail to reject $H_0$. With a p value greater than 0.05, we do not have evidence to conclude that the probability of getting the flu was different between vaccine and placebo recipients."
+
+## Chi-Squared test with Patient Data
+
+We can also conduct the chi-squared test when we have individual-level patient data. The null and alternative hypotheses are the same. The data "fluvaccine.csv" contains individual-level patient data corresponding to the contingency table above.
+
+We first set our working directory, read in, and save the data as an R object, here called "fluvac.data".
+
+```{r}
+setwd("~/Work/BIOS 591P 2021/R Materials/1 Introduction/Chi-Square Test")
+
+fluvac.data <- read.csv("fluvaccine.csv")
+```
+
+We can view the data to verify that we read it in correctly.
+
+```{r,eval=FALSE}
+View(fluvac.data)
+```
+
+Now, we can still use the __chisq.test()__ function, but we give the function two arguments: the two categorical variables for which we are testing the association. We extract the data from the fluvac.data data frame with the __\$__ operator.
+
+```{r}
+chisq.test(fluvac.data$Flu,fluvac.data$Vaccine)
+```
+
+Observe that the test results in an identical test statistic and p value as before, and thus we come to the same conclusion.
+
+We can save the chi-squared test again, in order to check that the expected values in each cell are greater than 5.
+
+```{r}
+fluchi.data <- chisq.test(fluvac.data$Flu,fluvac.data$Vaccine)
+
+fluchi.data$expected
+```

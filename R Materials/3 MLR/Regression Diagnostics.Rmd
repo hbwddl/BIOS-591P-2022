@@ -1,0 +1,182 @@
+---
+title: 'MLR: Regression Diagnostics'
+author: "Hannah Waddel"
+date: "3/16/2021"
+output: pdf_document
+---
+
+# Regression Diagnostics in R
+
+After we fit a multiple linear regression model, we must evaluate the assumptions we have made to fit the model. We will evaluate linearity, outliers, and multicollinearity.
+
+In this exercise we will continue the previous exercise with the birthweight data. Begin by reading in the birthweight data and fit the multiple linear regression model.
+
+```{r}
+## Load the sas7bdat package to read in a SAS dataset
+library(sas7bdat)
+
+## Set working directory
+setwd("~/OneDrive - Emory University/Documents/Work/Bios 591P 2022/R Materials/3 MLR/Data")
+## Read in the data
+bwt <- read.sas7bdat("birthweight.sas7bdat")
+
+## Fit MLR model
+bwt.lm <- lm(BWT ~ AGE + WT + SMOKE + HT,data=bwt)
+```
+
+We are going to load two packages which contain useful functions for regression diagnostics: car and MASS. These packages are automatically installed when you install R, but you must load them with the *library()* function before using them.
+
+```{r}
+## Load packages for regression diagnostics
+library(car)
+library(MASS)
+```
+
+# Linearity
+
+## Partial Plots
+
+We use the *crPlots()* function, from the car package, in order to fit partial plots. We give two additional arguments, line=FALSE and smooth=FALSE, to tell *crPlots()* not to fit lines over the residuals or add smoothing lines (see what happens when you remove line=FALSE and smooth=FALSE)
+
+```{r}
+## Partial plots: crPlots()
+crPlots(bwt.lm,line=FALSE,smooth=FALSE)
+```
+
+# Influential Points and Outliers
+
+## Leverage
+
+We use the function *hatvalues()* in order to calculate the leverage values in R. It is called "hatvalues" because the leverage values are calculated from the hat matrix (used to fit the linear model).
+
+The *hatvalues()* function takes our linear model object as its argument. Calculate and save the leverage values.
+
+```{r}
+## Leverage: hatvalues()
+lev.vals <- hatvalues(bwt.lm)
+```
+
+The threshold for concerning leverage values is $\frac{2(k+1)}{n}$, where we have $k$ explanatory variables. In this case, we have 4 explanatory variables. Calculate and save the leverage threshold.
+
+We calculate $n$ using the *length()* function, which will tell us how many leverage values we have, and thus how many subjects we have in our model.
+
+```{r}
+lev.threshold <- 2*(4+1)/length(lev.vals)
+```
+
+We can see a histogram of the leverage values with the *hist()* function.
+
+```{r}
+hist(lev.vals)
+```
+
+To more easily see the values of concern, we add a vertical line to our plot with the *abline()* function. This is a very flexible function which can add lines to a plot. We'll see it again, but for now we add a vertical line with the "v=" argument in abline, and we draw the line at the leverage threshold.
+
+```{r}
+hist(lev.vals)
+abline(v=lev.threshold)
+```
+
+To see which values are above the threshold, we give R a logical (true/false) statement with the *>* operator.
+
+```{r}
+lev.vals > lev.threshold
+```
+
+This just gives us a list of true/false values telling us which observations have a leverage value higher than the threshold. 
+
+The list of true/false values is actually stored as 1s and 0s, so if we take the sum of the true and false values, we will see how many leverage values are higher than the threshold.
+
+```{r}
+sum(lev.vals > lev.threshold)
+```
+
+There are 17 observations with a leverage value higher than the threshold.
+
+In order to see which leverage values are high, we use the *which()* function to tell us the location where "lev.vals > lev.threshold" is true.
+
+```{r}
+which(lev.vals > lev.threshold)
+```
+
+Now, if we want to see the data for the observations with a high leverage value, we use the brackets *[,]* to select the specific rows of the birthweight dataset.
+
+```{r}
+bwt[which(lev.vals > lev.threshold),]
+```
+
+## Cook's Distance
+
+We follow a similar process with Cook's distance, but the threshold of concern is now $\frac{4}{n}$. We calculate Cook's distance with the *cooks.distance()* function, which takes our linear model object as its argument.
+
+```{r}
+## Cook's distance: cooks.distance()
+
+cooksd <- cooks.distance(bwt.lm)
+
+# Threshold: 4/n
+cooks.threshold <- 4/length(cooksd)
+
+hist(cooksd)
+abline(v=cooks.threshold)
+```
+
+```{r,eval=FALSE}
+cooksd > cooks.threshold
+```
+
+```{r}
+which(cooksd > cooks.threshold)
+
+bwt[which(cooksd > cooks.threshold),]
+
+sum(cooksd > cooks.threshold)
+```
+
+## Jackknife Residuals
+
+The jackknife residuals are calculated with the *studres()* function from the MASS package, because another name for the jackknife residuals is "studentized residuals".
+
+```{r}
+## Jackknife Residuals: studres()
+jackres <- studres(bwt.lm)
+```
+
+The threshold for the jackknife residuals is 2, but remember that the residuals can be negative--so we are looking for jackknife residuals with an absolute value greater than 2.
+
+```{r}
+# Threshold: absolute value > 2
+hist(jackres)
+abline(v=2)
+abline(v=-2)
+```
+
+```{r,eval=FALSE}
+abs(jackres) > 2
+```
+
+```{r}
+which(abs(jackres) > 2)
+
+bwt[which(abs(jackres) > 2),]
+```
+
+# Multicollinearity
+
+## Correlation
+
+We test the correlation between explanatory variables with the *cor.test()* function. Here, we calculate the correlation between age and weight, which are our two continuous explanatory variables.
+
+```{r}
+cor.test(bwt$AGE,bwt$WT)
+```
+
+## Variance Inflation Factors
+
+We can also evaluate multicollinearity by calculating the Variance Inflation Factors. The *vif()* function from the car package will do this for us.
+
+```{r}
+vif(bwt.lm)
+```
+
+Recall that the threshold for concerning VIFs is around 10, so we do not see any VIFs of concern. 

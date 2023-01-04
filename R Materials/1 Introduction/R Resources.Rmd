@@ -1,0 +1,80 @@
+---
+title: "R Resources"
+author: "Hannah Waddel"
+date: "Updated 01/03/2022"
+output: pdf_document
+---
+
+Here are some general resources for learning R, finding help with R, and expanding your R skills. We will cover the basics in this class, but we have a limited amount of time this semester and these will be useful for further study. R can be overwhelming at first, but I’ve found that the best way to learn R was having to use it in real data analyses. Don't be afraid to play around with R.
+
+This is not an official endorsement of these sites by Rollins or anything like that. They are just sites and articles that I have found useful/think may be useful.  
+
+## Google
+
+I use Google a ton while I’m using R. If you are experiencing an error, people have likely seen the same thing before. For information about effective googling as a programmer, see this link:  
+
+* <https://medium.com/@niamhpower/how-to-google-effectively-as-a-developer-4ebe363afe>
+
+If any of these websites come up in my Google searches, I prefer to check out their answers first:  
+
+* <https://stackoverflow.com/>
+* <https://cran.r-project.org/>
+* <https://community.rstudio.com/>
+* <https://www.r-bloggers.com/>
+
+## Tutorials
+Type `help.start()` in R and you will open up the R documentation and some built-in tutorials. I think this would be most helpful for people who have been exposed to some programming concepts before.  
+
+This documentation is the same thing, just online:  
+
+* <https://cran.r-project.org/doc/manuals/r-release/R-intro.html>  
+
+I have heard good things about the free tutorials on datacamp and swirlstats, and I think they are good if you have not programmed before.  
+
+* <https://www.datacamp.com/courses/free-introduction-to-r>
+* <https://swirlstats.com/>
+
+This short tutorial covers the basics pretty quickly:  
+
+* <https://www.burns-stat.com/documents/tutorials/impatient-r/>
+
+The author also has a fun document outlining some reasons why R is great:  
+
+* <https://www.burns-stat.com/documents/tutorials/why-use-the-r-language/>
+
+## Textbooks
+
+This book, R Programming for Data Science, is freely available online and is very thorough. It is focused on programming concepts.
+
+* <https://bookdown.org/rdpeng/rprogdatascience/>
+
+You are able to access a free online version of this textbook (R in Action). It may be useful for exercises and reference:  
+
+* <https://www.manning.com/books/r-in-action-second-edition#toc>
+
+## Graphs and Plots
+
+ggplot2 is a popular R package that can make beautiful graphs and plots. Because of it's flexibility, it can also be fairly complicated. This is a comprehensive tutorial on how to use ggplot2:  
+
+* <http://r-statistics.co/Complete-Ggplot2-Tutorial-Part1-With-R-Code.html>
+
+## RMarkdown
+
+RMarkdown is a package for R which lets you make markdown documents. These documents let you write regular paragraphs, then put in “chunks” of R code or mathematical equations. Then, you can output them as .html, .pdf, and Microsoft Word files. They make it easy to present research and explain your R code. This document was made in RMarkdown.
+
+The setup can be a little complicated, so if you can’t get RMarkdown working, don’t worry about it and just make sure to keep putting a lot of comments in your regular R code.  
+
+* <https://rmarkdown.rstudio.com/lesson-1.html>
+* <https://bookdown.org/yihui/rmarkdown/>
+
+## Cheat Sheets
+Here are some useful cheat sheets. If you are looking for more, there are a lot of really nice cheat sheets here:
+
+* <https://rstudio.com/resources/cheatsheets/>  
+
+Here are some specific cheat sheets for some of the things that were in this document:
+
+* R cheat sheet: <https://rstudio.com/wp-content/uploads/2016/10/r-cheat-sheet-3.pdf>
+* ggplot2 cheat sheet: <https://rstudio.com/wp-content/uploads/2015/03/ggplot2-cheatsheet.pdf>
+* Rmarkdown cheat sheet: <https://rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf>
+

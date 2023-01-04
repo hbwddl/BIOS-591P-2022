@@ -1,0 +1,312 @@
+---
+title: 'Simple Linear Regression in R'
+author: "Hannah Waddel"
+date: "2/11/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "~/OneDrive - Emory University/Documents/Work/Bios 591P 2022/R Materials/2 SLR")
+```
+
+## Simple Linear Regression in R: Relationship between age and weight in chicks
+
+Our strategy for a simple linear regression in R is as follows:
+
+1. Read in the data.
+
+2. Perform descriptive statistics to explore the data.
+
+3. Fit the linear model.
+
+4. Report interpretations and conclusions.
+
+## Creating the dataset
+
+We first must create the dataset in R. We will create a data frame called chick_weight with the chick data.
+
+To create the age data, since the chicks were measured at days 6 to 16, we use the function **seq()** which will create a sequence of numbers between the "from=" argument and the "to=" argument.
+
+```{r}
+seq(from=6,to=16)
+```
+
+To create a data frame, we use the data.frame function and give it each data column as a list. We have two columns, age and weight. When you create a data frame, give the names of the columns as arguments in the function, and assign the columns with the equal sign **=** .
+
+```{r}
+chick_weight <- data.frame("age"=seq(from=6,to=16),
+                           "wgt"=c(0.029,0.052,0.079,0.125,0.181,0.261,0.425,0.738,1.13,1.882,2.812))
+
+print(chick_weight)
+```
+
+## Exploring the Data
+
+Now that we have created the data, let's explore the data with some descriptive statistics. We'll use the **mean()**, **sd()**, **median()**, **IQR()**, and **range()** functions. Recall that we access each column/variable of the data frame chick_weight with the **$** operator.
+
+```{r}
+mean(chick_weight$age)
+sd(chick_weight$age)
+median(chick_weight$age)
+IQR(chick_weight$age)
+range(chick_weight$age)
+
+mean(chick_weight$wgt)
+sd(chick_weight$wgt)
+median(chick_weight$wgt)
+IQR(chick_weight$wgt)
+range(chick_weight$wgt)
+```
+
+We will also plot histograms of the data to examine the distributions of age and weight. We use the **hist()** function, and we now set the titles of the histogram plots with the **main=** argument, which takes a string in quotation marks and sets it as the title of the histogram.
+
+```{r}
+hist(chick_weight$age,main="Histogram of Age")
+hist(chick_weight$wgt,main="Histogram of Weight")
+```
+
+We also plot a simple scatterplot of the weight versus the age of the chick, with the **plot()** function. We can use the "main=" argument to set the plot title again.
+
+```{r}
+plot(chick_weight$age,chick_weight$wgt,main="Weight vs. Age")
+```
+
+The plot labels on the x and y axis don't look so great We can use the "xlab=" and "ylab=" arguments to give them new labels.
+
+```{r}
+plot(chick_weight$age,chick_weight$wgt,main="Weight vs. Age",xlab="Age (days)",ylab="Weight (lbs)")
+```
+
+There are many more options for customizing your plots, and we'll discuss more as we go, but this looks good for now.
+
+Now, we want to calculate $R$ and $R^2$ between age and weight. We can do this with the **cor()** function, which takes the age and weight columns as arguments.
+
+```{r}
+cor(chick_weight$age,chick_weight$wgt)
+cor(chick_weight$age,chick_weight$wgt)^2
+```
+
+The correlation, $R$, between age and weight is 0.86. $R^2$ is 0.74, meaning that 74% of the variation in age is explained by the variation in weight.
+
+In order to get the confidence interval for the correlation coefficient, as well as test its significance, we use the function **cor.test()**. 
+
+```{r}
+cor.test(chick_weight$age,chick_weight$wgt)
+```
+
+The confidence interval for the correlation coefficient, $R$, is (0.54,0.96).
+
+## Fit Linear Model
+
+Now we will fit the simple linear regression model between age and weight. To do this, we will use the **lm()** (linear model) function. This is a powerful function, and we will use it many times during the rest of the course.
+
+For a simple linear regression, the **lm()** function takes a formula as its argument, created using the **~** operator. We will put the dependent variable (weight) on the left side of the **~**, and the independent variable (age) on the right side. The other argument the **lm()** function takes is "data=", and here we give it chick_weight.
+
+```{r}
+chick.lm <- lm(wgt ~ age,data=chick_weight)
+```
+
+The **lm()** function creates a linear model object that has many different parts. Luckily, there are some functions we can use which will help us summarize it. One easy function is the **summary()** function. We will use this to get an overall summary of the linear model. If you fit other types of models in R, after this class (non-linear models, time series models, etc), you can typically use **summary()** on those fit models as well.
+
+```{r}
+summary(chick.lm)
+```
+
+The summary includes most of the information we are interested in. It first gives the formula for the linear model, then summarizes the residuals (we want to see a median residual of 0). Next, it gives the summary of the fit coefficients. $\beta_0$ is the coefficient for the intercept and $\beta_1$ is the coefficient associated with age.
+
+It gives the fitted value (estimate), standard error, T statistic, and P-value for each coefficient.
+
+It also gives the "residual standard error", which is _not_ the MSE. It also gives the $R^2$ value, which we calculated earlier. The "adjusted R-squared" statistic is more useful later, for multiple linear regression.
+
+The F-statistic and p-value test whether $\beta_1$ is not equal to 0.
+
+To get the ANOVA table for the linear model, we use the **anova()** function.
+
+```{r}
+anova(chick.lm)
+```
+
+If we are interested in seeing confidence intervals for the estimated coefficients, we can use the **confint()** function.
+
+```{r}
+# Let's see the confidence intervals for estimated coefficients
+confint(chick.lm)
+```
+
+The confidence interval for $\beta_1$ is (0.13, 0.33).
+
+## Predicting Outcomes
+
+Now we want to predict the age at the median age of 11 days. R has a built in **predict()** function, but we have to make sure to give it the correct arguments. 
+
+The **predict()** function takes in a fitted linear model from the **lm()** function, and a data frame of the values for which we want to predict the outcome. The data frame is given for the argument "newdata=". 
+
+We create a data frame, "median.chick", that has one column named age, and contains one value of age: 11. Then, we give the **predict()** function the "chick.lm" object we created earlier, and the data frame "median.chick".
+
+```{r}
+# Predict weight at 11 days
+median.chick <- data.frame(age=11)
+predict(chick.lm,newdata=median.chick)
+```
+
+We predict that the average weight for chicks at 11 days is 0.701 pounds. The "1" in this data output is an index--it is saying that the first value in the list is 0.701.
+
+If we want to calculate a confidence interval at 11 days, we can specify this in the **predict()** function with an additional argument, "interval=". 
+
+```{r}
+predict(chick.lm,newdata=median.chick,interval="confidence")
+```
+
+We are 95% confident that the average weight of chicks at 11 days is between 0.37 and 1.03.
+
+The default confidence interval is 95%, but we can specify the confidence level with the "level=" argument.
+
+```{r}
+predict(chick.lm,newdata=median.chick,interval="confidence",level=0.9)
+```
+
+We are 90% confident that the average weight of chicks at 11 days is between 0.43 and 0.97.
+
+## Plotting Results
+
+Now, we want to plot our data, the predicted line, the confidence intervals, and prediction intervals.
+
+We first create a sequence of the age values we are interested in, and save it as a data frame. Then, we use it as an argument in the **predict()** function, and save the predicted values at each age. We also save the confidence intervals and prediction intervals.
+
+```{r}
+age.vals <- data.frame(age=seq(from=6,to=16))
+age.predict <- predict(chick.lm,newdata=age.vals)
+weight.ci <- predict(chick.lm,newdata=age.vals,interval="confidence")
+weight.pi <- predict(chick.lm,newdata=age.vals,interval="predict")
+```
+
+\newpage
+
+We initialize a plot of our data with the **plot()** function, making sure to set the title and axis labels.
+
+```{r}
+plot(chick_weight$age,chick_weight$wgt,main="Weight vs. Age",
+     xlab="Age (Days)",ylab="Chick Weight (lbs)")
+```
+
+
+\newpage
+
+We plot the predicted values using the **lines()** function, which adds a line through the x and y coordinates given to the function. Note that the **lines()** function can't create a plot on its own, it must be added to an existing plot.
+
+```{r}
+plot(chick_weight$age,chick_weight$wgt,main="Weight vs. Age",
+     xlab="Age (Days)",ylab="Chick Weight (lbs)")
+
+lines(age.vals$age,age.predict)
+```
+
+\newpage
+
+Now, we want to add lines for the confidence intervals onto the plot. Our weight.ci matrix has 3 columns: the fit (predicted) value, the lower limit of the confidence interval, and the upper limit of the confidence interval. Make sure that we get the lower and upper limits of the confidence interval. The **$** operator will not work here, because the object is a matrix, not a data frame. We use the square brackets **[,]** to select the second and third columns to plot. 
+
+```{r}
+weight.ci
+```
+
+```{r}
+plot(chick_weight$age,chick_weight$wgt,main="Weight vs. Age",
+     xlab="Age (Days)",ylab="Chick Weight (lbs)")
+
+lines(age.vals$age,age.predict)
+
+lines(age.vals$age,weight.ci[,2])
+lines(age.vals$age,weight.ci[,3])
+```
+
+\newpage
+
+That is a lot of lines, and is a bit busy. If we give the **lines()** function the "lty=" argument (line type), and set "lty=2", we can get a dashed line.
+
+```{r}
+# Plot prediction interval lines
+plot(chick_weight$age,chick_weight$wgt,main="Weight vs. Age",
+     xlab="Age (Days)",ylab="Chick Weight (lbs)")
+
+lines(age.vals$age,age.predict)
+
+lines(age.vals$age,weight.ci[,2],lty=2)
+lines(age.vals$age,weight.ci[,3],lty=2)
+```
+
+\newpage
+
+The lines look better now, but they leave the plot area. Let's fix the range of the y axis in our plot. We do this with the "ylim=" argument. This argument takes in a list of two numbers, created with **c()**. The first number is the minimum y value and the second number is the maximum y value. The argument "xlim=" works the same way.
+
+```{r}
+plot(wgt~age,data=chick_weight,main="Weight vs. Age",
+     xlab="Age (Days)",ylab="Chick Weight (lbs)",
+     ylim=c(-2,3))
+
+lines(age.vals$age,age.predict)
+
+lines(age.vals$age,weight.ci[,2],lty=2)
+lines(age.vals$age,weight.ci[,3],lty=2)
+```
+
+\newpage
+
+This looks better. Now, we will add dashed lines for the prediction intervals in the same way that we added the confidence intervals.
+
+```{r}
+plot(wgt~age,data=chick_weight,main="Weight vs. Age",
+     xlab="Age (Days)",ylab="Chick Weight (lbs)",
+     ylim=c(-2,3))
+
+lines(age.vals$age,age.predict)
+
+lines(age.vals$age,weight.ci[,2],lty=2)
+lines(age.vals$age,weight.ci[,3],lty=2)
+
+lines(age.vals$age,weight.pi[,2],lty=2)
+lines(age.vals$age,weight.pi[,3],lty=2)
+```
+
+\newpage
+
+There are a few more things we can do to make this plot look better. To make the data points easier to see, we can use the "pch=" argument (point character) in the **plot()** function to change the symbol for the data points. There are a lot of different pch values that you can select to distinguish your data points. I often like to use "pch=19", which is a filled dot. Here are the "pch=" options you can use in R:
+
+![source: sthda.com](pchopt.png)
+
+\newpage
+
+```{r}
+plot(wgt~age,data=chick_weight,main="Weight vs. Age",
+     xlab="Age (Days)",ylab="Chick Weight (lbs)",
+     ylim=c(-2,3),pch=19)
+
+lines(age.vals$age,age.predict)
+
+lines(age.vals$age,weight.ci[,2],lty=2)
+lines(age.vals$age,weight.ci[,3],lty=2)
+
+lines(age.vals$age,weight.pi[,2],lty=2)
+lines(age.vals$age,weight.pi[,3],lty=2)
+```
+
+
+\newpage
+
+We'll do one more thing to clean up this plot. For the **plot()** function or the **lines()** function, we can use the "col=" argument to set the color. R takes colors in a lot of different formats, but the easiest one is to give it a string with the color we want. There are a lot of different R color names, but for now we can just use "blue". We'll set the fitted line to blue to make it easier to distinguish from the data points.
+
+```{r}
+plot(wgt~age,data=chick_weight,main="Weight vs. Age",
+     xlab="Age (Days)",ylab="Chick Weight (lbs)",
+     ylim=c(-2,3),pch=19)
+
+lines(age.vals$age,age.predict,col="blue")
+
+lines(age.vals$age,weight.ci[,2],lty=2)
+lines(age.vals$age,weight.ci[,3],lty=2)
+
+lines(age.vals$age,weight.pi[,2],lty=2)
+lines(age.vals$age,weight.pi[,3],lty=2)
+```
+
+This plot looks much better. To save it and put it in a report, you can right-click on the plot in Rstudio and save the image, after adjusting the plot to the size you want it to be. You can also click "export > save as image" in the plot window of RStudio.

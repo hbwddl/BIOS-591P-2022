@@ -1,0 +1,208 @@
+---
+title: "MLR Initial Report"
+author: "Hannah Waddel"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+r = getOption("repos")
+r["CRAN"] = "http://cran.us.r-project.org"
+options(repos = r)
+
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "~/Work/BIOS 591P 2021/R Materials/3 MLR")
+```
+
+# Initial Report: Relationship between Birthweight and Several Variables
+
+In this exercise we are going to perform a multiple linear regression to assess whether age, weight, smoking status, or hypertension status were significantly associated with birthweight.
+
+We will begin by reading in the data. I have provided the data in a SAS dataset, "birthweight.sas7bdat".
+
+## Importing the Data
+
+The data are stored as a SAS dataset, "birthweight.sas7bdat". Before importing the data, make sure that your working directory is set to the folder where you have saved the dataset.
+
+```{r}
+setwd("~/Work/BIOS 591P 2021/R Materials/3 MLR")
+```
+
+We need to get the data into a format which R can use. R does not have a built-in capability to read in a SAS dataset, but we can install packages which expand R's capabilities.
+
+Packages are easy to install and make R an incredibly flexible programming language. People create R packages to implement new statistical methods or expand R's existing methods.
+
+If a package is of publication quality and makes a non-trivial contribution to R's capabilities, it is stored on the Comprehensive R Archive Network (CRAN). If a package is on CRAN, you can install it using the *install.packages()* function.
+
+The package we are installing today is called "sas7bdat". It allows us to read in SAS datasets, which are stored as ".sas7bdat" files on your computer.
+
+To install the package, we are using the *install.packages()* function, which requires the name of the package we want as a string (text enclosed by " ").
+
+Let's install sas7bdat now. Make sure that the package name is in quotation marks.
+
+```{r}
+install.packages("sas7bdat")
+```
+
+R will tell you where it is putting the files for the package (default settings should be fine). Your installation was successful if you see "package ‘sas7bdat’ successfully unpacked and MD5 sums checked".
+
+The sas7bdat package gives us an important function *read.sas7bdat()*. This works like the *read.csv()* function we have used, but for SAS datasets.
+
+However, if we try to use *read.sas7bdat()* right now, we get an error.
+
+```{r,error=TRUE}
+bwt <- read.sas7bdat("birthweight.sas7bdat")
+```
+
+R cannot find the function "read.sas7bdat" because while we have installed the sas7bdat package, we have not loaded it properly for R to use. After we have installed a package, we have to load it into R's library with the *library()* function before R can use the functions inside the package.
+
+```{r}
+library(sas7bdat)
+```
+
+Notice that we don't need to use quotation marks around the name of the package when we are loading it with *library()*.
+
+Now that we have loaded the sas7bdat function, we can use the *read.sas7bdat()* function to read in the dataset. We assign the dataset the name "bwt".
+
+```{r}
+bwt <- read.sas7bdat("birthweight.sas7bdat")
+```
+
+We can check that the dataset read in correctly with the following functions that do similar things as PROC CONTENTS.
+
+```{r}
+#Check number of rows and columns
+dim(bwt)
+
+#See the first few lines of the dataset
+head(bwt)
+
+#See that the columns have the right name
+names(bwt)
+```
+
+## Descriptive Statistics
+
+We use the *mean()*, *sd()* and *quantile()* functions to find descriptive statistics for the continuous/numeric variables.
+
+```{r}
+mean(bwt$BWT)
+sd(bwt$BWT)
+quantile(bwt$BWT)
+
+mean(bwt$AGE)
+sd(bwt$AGE)
+quantile(bwt$BWT)
+
+mean(bwt$WT)
+sd(bwt$WT)
+quantile(bwt$WT)
+```
+
+For the discrete/categorical variables, we use the *table()* function to get the frequency of outcomes.
+
+```{r}
+table(bwt$SMOKE)
+table(bwt$HT)
+```
+
+To get the percentages, we divide the output from *table()* by the number of observations (rows in the dataset), then multiply by 100.
+
+```{r}
+table(bwt$SMOKE)/nrow(bwt) * 100
+table(bwt$HT)/nrow(bwt) * 100
+```
+
+## Calculating and Testing Correlation
+
+To calculate correlation between all the variables of the birthweight dataset, we can use the *cor()* function.
+
+```{r}
+cor(bwt)
+```
+
+This gives us every calculated correlation value between every variable in the dataset. We are not interested in some of these variables, so we can also give the *cor()* function just two variables.
+
+```{r}
+cor(bwt$WT,bwt$BWT)
+cor(bwt$AGE,bwt$BWT)
+```
+
+To test the correlation values and get confidence intervals for the true correlation, we use the *cor.test()* function.
+
+```{r}
+cor.test(bwt$WT,bwt$BWT)
+cor.test(bwt$AGE,bwt$BWT)
+```
+
+To get pairwise plots between each of the variables, we use the *pairs()* function.
+
+```{r}
+pairs(bwt)
+```
+
+However, this includes variables we are not interested in, like ID, and categorical variables. We can give *pairs()* the relevant columns of bwt and it will make the pairwise plots between each of them.
+
+Recall the bracket notation *[rows,columns]* that we use to pull the columns of bwt that we want. We give it a list, created using *c()*, of the relevant column names as strings.
+
+```{r}
+pairs(bwt[,c("BWT","WT","AGE")])
+```
+
+## Fitting Multiple Linear Regression Model
+
+Our model is $Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \beta_3 X_3 + \beta_4 X_4 + E$
+
+Where
+
+Y = birthweight (g)
+
+$X_1$ = mother's age (years)
+
+$X_2$ = mother's weight (lbs)
+
+$X_3$ = mother's smoking status (1 = smoked during pregnancy, 0 = did not smoke)
+
+$X_4$ = mother's hypertension status (1 = history of hypertension, 0 = no history of hypertension)
+
+$E$ = random error, assumed Normal(0, $\sigma^2$ )
+
+$\beta_0$ = true y-intercept
+
+$\beta_i$ = true slope associated with $X_i$, adjusted for the other predictors.
+
+We fit our model with the *lm()* function again. The arguments for the *lm()* function are a formula specifying our model and a dataset.
+
+The formula uses the \~ operator again. The dependent variable (birthweight), goes on the left side of the \~, and the independent variables go on the right side of the \~. We are fitting a linear model where we add the effects of $X_1$, $X_2$, $X_3$, and $X_4$, so we add the variables age, weight, smoking status, and hypertension status on the right side of the formula. Remember that variable names in R are case-sensitive.
+
+Make sure to save the results from *lm()* as an object.
+
+```{r}
+bwt.lm <- lm(BWT ~ AGE + WT + SMOKE + HT,data=bwt)
+```
+
+Use the *summary()* function to see the estimates from *lm()*.
+
+```{r}
+summary(bwt.lm)
+```
+
+The overall F test is in the bottom row of the summary. The F-test p-value is 0.001065.
+
+The adjusted R-squared value is just above the F statistic, and it is 0.07464.
+
+The "Coefficients:" table has the variable name in the first column, then the estimated $\hat{\beta_i}$, the standard error, the test statistic value for the partial test, and the p-value for the partial tests.
+
+The quantiles for the residuals are also in the summary, but we can get a histogram of the residuals by giving the *hist()* function the residuals of the bwt.lm linear model object, which we get with the *residuals()* function.
+
+```{r}
+hist(residuals(bwt.lm), main="Histogram of Residuals", xlab="Residuals")
+```
+
+We can also get the normal probability plot with the *qqnorm()* function, then the *qqline()* function to add the normal probability line to the plot.
+
+```{r}
+qqnorm(residuals(bwt.lm))
+qqline(residuals(bwt.lm))
+```
+
+You can export plots in Rstudio to put them in a report by clicking the "export" button just above the plot.
